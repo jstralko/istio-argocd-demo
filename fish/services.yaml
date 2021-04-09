@@ -1,0 +1,61 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: fish-routing
+spec:
+  gateways:
+  - appgw-gateway
+  hosts:
+  - "*"
+  http:
+    # Match conditions to be satisfied for the rule to be activated. All
+    # conditions inside a single match block have AND semantics, while the
+    # list of match blocks have OR semantics. The rule is matched if any one
+    # of the match blocks succeed.
+    - match:
+      # If http header canary == true && path prefix == /fish
+      - headers:
+          canary:
+            exact: "true"
+        uri:
+          prefix: /fish
+      route:
+      - destination:
+          host: fish-canary-svc
+    - name: primary
+      match:
+      - uri:
+          exact: /fish
+      route:
+      - destination:
+          host: fish-svc
+        weight: 100
+      - destination:
+          host: fish-canary-svc
+        weight: 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fish-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: fish
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fish-canary-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: fish

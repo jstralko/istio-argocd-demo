@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: fish
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -14,21 +14,33 @@ spec:
     spec:
       containers:
       - name: fish
-        image: gerbstralko/fish-golang:1.0.0
+        image: fish
         imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
   strategy:
     canary:
+      canaryService: fish-canary-svc
+      stableService: fish-svc
       trafficRouting:
         istio:
           virtualService: 
             name: fish-routing
             routes:
             - primary
-          destinationRule:
-            name: fish-policy
-            canarySubsetName: canary
-            stableSubsetName: stable
       steps:
+      - setWeight: 0
+      # Force one pod to be spun up for dark releasing.
+      - setCanaryScale:
+          replicas: 1
+      - pause: {}
       - setWeight: 5
-      - pause:
-          duration: 10m
+      - pause: {}
+      - setWeight: 15
+      - pause: {}
+      - setWeight: 35
+      - pause: {}
+      - setWeight: 65
+      - pause: {}
+

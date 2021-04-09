@@ -1,4 +1,0 @@
-resources:
-  - rollout.yaml
-  - services.yaml
-  - ingress.yaml

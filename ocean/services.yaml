@@ -1,0 +1,56 @@
+kind: VirtualService
+apiVersion: networking.istio.io/v1alpha3
+metadata:
+  name: ocean-routing
+  namespace: default
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - appgw-gateway
+  http:
+    # I suck and dont want to rewrite my frontend.
+    - name: primary
+      match:
+      - uri:
+          prefix: /ocean
+      - uri:
+          prefix: /static
+      - uri:
+          prefix: /fish-red
+      - uri:
+          prefix: /fish-blue
+      - uri:
+          prefix: /fish-dead
+      - uri:
+          prefix: /sailboat
+      route:
+        - destination:
+            host: ocean-svc
+          weight: 100
+        - destination:
+            host: ocean-canary-svc
+          weight: 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocean-svc
+spec:
+  selector:
+    app: ocean
+  ports:
+    - name: http
+      port: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocean-canary-svc
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: ocean
