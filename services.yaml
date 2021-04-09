@@ -1,0 +1,50 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: fish-routing
+spec:
+  gateways:
+  - appgw-gateway
+  hosts:
+  - "*"
+  http:
+    - name: primary
+      match:
+      - uri:
+          exact: /fish
+      route:
+      - destination:
+          host: fish-svc
+          subset: stable
+        weight: 100
+      - destination:
+          host: fish-svc
+          subset: canary
+        weight: 0
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: fish-policy
+spec:
+  host: fish-svc
+  subsets:
+  - name: canary
+    labels:
+      app: fish
+  - name: stable
+    labels:
+      app: fish
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fish-svc
+spec:
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: fish

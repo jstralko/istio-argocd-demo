@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: fish
+spec:
+  selector:
+    matchLabels:
+      app: fish
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fish
+    spec:
+      containers:
+      - name: fish
+        image: gerbstralko/fish-golang:1.0.0
+        imagePullPolicy: Always
+  strategy:
+    canary:
+      trafficRouting:
+        istio:
+          virtualService: 
+            name: fish-routing
+            routes:
+            - primary
+          destinationRule:
+            name: fish-policy
+            canarySubsetName: canary
+            stableSubsetName: stable
+      steps:
+      - setWeight: 5
+      - pause:
+          duration: 10m
