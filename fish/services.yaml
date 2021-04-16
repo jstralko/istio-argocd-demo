@@ -18,7 +18,7 @@ spec:
           canary:
             exact: "true"
         uri:
-          prefix: /fish
+          exact: /fish
       route:
       - destination:
           host: fish-canary-svc
