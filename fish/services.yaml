@@ -23,6 +23,11 @@ spec:
       - destination:
           host: fish-canary-svc
     - name: primary
+      fault:
+        abort:
+          httpStatus: 500
+          percentage:
+            value: 0
       match:
       - uri:
           exact: /fish
